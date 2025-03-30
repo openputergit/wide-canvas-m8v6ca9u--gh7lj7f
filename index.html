@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        .modal {
+            transition: opacity 0.25s ease;
+        }
+        body {
+            background-color: #f0f2f5;
+        }
+    </style>
+</head>
+<body>
+    <!-- Admin Login Section -->
+    <div id="loginSection" class="min-h-screen flex items-center justify-center">
+        <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Admin Login</h2>
+            <input type="text" id="adminUsername" placeholder="Username" class="w-full mb-4 p-2 border rounded">
+            <input type="password" id="adminPassword" placeholder="Password" class="w-full mb-4 p-2 border rounded">
+            <button onclick="adminLogin()" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Login</button>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="adminDashboard" class="hidden min-h-screen bg-gray-100">
+        <nav class="bg-white shadow-lg p-4">
+            <div class="max-w-7xl mx-auto flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
+                <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </button>
+            </div>
+        </nav>
+
+        <div class="max-w-7xl mx-auto p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <button onclick="showModal('deposit')" class="p-6 bg-green-500 text-white rounded-lg hover:bg-green-600">
+                <i class="bi bi-cash-stack text-3xl"></i>
+                <h3 class="mt-2 text-xl font-semibold">Deposit</h3>
+            </button>
+
+            <button onclick="showModal('withdrawal')" class="p-6 bg-red-500 text-white rounded-lg hover:bg-red-600">
+                <i class="bi bi-cash text-3xl"></i>
+                <h3 class="mt-2 text-xl font-semibold">Withdrawal</h3>
+            </button>
+
+            <button onclick="showModal('payment')" class="p-6 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                <i class="bi bi-credit-card text-3xl"></i>
+                <h3 class="mt-2 text-xl font-semibold">Payment</h3>
+            </button>
+
+            <button onclick="showModal('createId')" class="p-6 bg-purple-500 text-white rounded-lg hover:bg-purple-600">
+                <i class="bi bi-person-plus text-3xl"></i>
+                <h3 class="mt-2 text-xl font-semibold">Create ID</h3>
+            </button>
+        </div>
+
+        <!-- User List -->
+        <div class="max-w-7xl mx-auto p-6">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">User List</h2>
+            <div class="bg-white rounded-lg shadow overflow-x-auto">
+                <table class="min-w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Site</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userList" class="bg-white divide-y divide-gray-200">
+                        <!-- User rows will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center">
+        <div class="modal-overlay absolute w-full h-full bg-gray-900 opacity-50"></div>
+        
+        <div class="modal-container bg-white w-11/12 md:max-w-md mx-auto rounded shadow-lg z-50 overflow-y-auto">
+            <div class="modal-content py-4 text-left px-6">
+                <div class="flex justify-between items-center pb-3">
+                    <p class="text-2xl font-bold" id="modalTitle">Modal Title</p>
+                    <button onclick="closeModal()" class="modal-close">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+
+                <div id="modalContent">
+                    <!-- Modal content will be inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Demo admin credentials
+        const ADMIN_CREDENTIALS = {
+            username: 'admin',
+            password: 'admin123'
+        };
+
+        let users = [];
+
+        function adminLogin() {
+            const username = document.getElementById('adminUsername').value;
+            const password = document.getElementById('adminPassword').value;
+
+            if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('adminDashboard').classList.remove('hidden');
+                updateUserList();
+            } else {
+                alert('Invalid credentials!');
+            }
+        }
+
+        function logout() {
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('adminDashboard').classList.add('hidden');
+            document.getElementById('adminUsername').value = '';
+            document.getElementById('adminPassword').value = '';
+        }
+
+        function showModal(type) {
+            const modal = document.getElementById('modal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalContent = document.getElementById('modalContent');
+
+            let content = '';
+            switch(type) {
+                case 'createId':
+                    modalTitle.textContent = 'Create New ID';
+                    content = `
+                        <input type="text" id="newUserName" placeholder="ID Name" class="w-full mb-4 p-2 border rounded">
+                        <input type="text" id="newUserSite" placeholder="Site" class="w-full mb-4 p-2 border rounded">
+                        <input type="password" id="newUserPassword" placeholder="Password" class="w-full mb-4 p-2 border rounded">
+                        <button onclick="createUser()" class="w-full bg-purple-500 text-white py-2 rounded hover:bg-purple-600">Create ID</button>
+                    `;
+                    break;
+                case 'deposit':
+                    modalTitle.textContent = 'Make Deposit';
+                    content = `
+                        <input type="text" placeholder="User ID" class="w-full mb-4 p-2 border rounded">
+                        <input type="number" placeholder="Amount" class="w-full mb-4 p-2 border rounded">
+                        <button onclick="closeModal()" class="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600">Submit Deposit</button>
+                    `;
+                    break;
+                case 'withdrawal':
+                    modalTitle.textContent = 'Process Withdrawal';
+                    content = `
+                        <input type="text" placeholder="User ID" class="w-full mb-4 p-2 border rounded">
+                        <input type="number" placeholder="Amount" class="w-full mb-4 p-2 border rounded">
+                        <button onclick="closeModal()" class="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600">Process Withdrawal</button>
+                    `;
+                    break;
+                case 'payment':
+                    modalTitle.textContent = 'Make Payment';
+                    content = `
+                        <input type="text" placeholder="User ID" class="w-full mb-4 p-2 border rounded">
+                        <input type="number" placeholder="Amount" class="w-full mb-4 p-2 border rounded">
+                        <input type="text" placeholder="Payment Details" class="w-full mb-4 p-2 border rounded">
+                        <button onclick="closeModal()" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">Submit Payment</button>
+                    `;
+                    break;
+            }
+            
+            modalContent.innerHTML = content;
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        function createUser() {
+            const name = document.getElementById('newUserName').value;
+            const site = document.getElementById('newUserSite').value;
+            const password = document.getElementById('newUserPassword').value;
+
+            if (name && site && password) {
+                const newUser = {
+                    id: users.length + 1,
+                    name: name,
+                    site: site,
+                    password: password
+                };
+                users.push(newUser);
+                updateUserList();
+                closeModal();
+            } else {
+                alert('Please fill all fields!');
+            }
+        }
+
+        function updateUserList() {
+            const userList = document.getElementById('userList');
+            userList.innerHTML = users.map(user => `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">${user.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${user.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${user.site}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <button onclick="deleteUser(${user.id})" class="text-red-600 hover:text-red-900">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function deleteUser(id) {
+            if (confirm('Are you sure you want to delete this user?')) {
+                users = users.filter(user => user.id !== id);
+                updateUserList();
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('modal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
